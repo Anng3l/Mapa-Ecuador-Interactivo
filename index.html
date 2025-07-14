@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mapa Interactivo con GeoJSON externo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="config.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+  <style>
+    #map {
+      height: 600px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Provincias de Ecuador (GeoJSON externo)</h2>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([-1.5, -78.0], 6);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+  
+  fetch('provincias_ecuador.geojson')  // <-- Ruta a tu archivo GeoJSON
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("No se pudo cargar el archivo GeoJSON");
+      }
+      return response.json();
+    })
+    .then(data => {
+      L.geoJSON(data, {
+        style: {
+          fillColor: '#2c7bb6',
+          weight: 2,
+          opacity: 1,
+          color: 'white',
+          dashArray: '3',
+          fillOpacity: 0.7
+        },
+        onEachFeature: function(feature, layer) {
+          layer.on('click', () => {
+            const nombreProvincia = feature.properties.nombre;
+
+            fetch(`https://mapaflask1-production.up.railway.app/api/provincia/${encodeURIComponent(nombreProvincia)}`)
+              .then(res => {
+                if (!res.ok) throw new Error("Error en la respuesta del servidor");
+                return res.json();
+              })
+              .then(data => {
+                alert(
+                  `Provincia: ${data.nombre}\n` +
+                  `Población total: ${data.pob_tot}\n` +
+                  `Analfabetismo: ${data.analfabeti}%\n` +
+                  `Densidad: ${data.densidad}\n` +
+                  `Edad media: ${data.edad_media}`
+                );
+              })
+              .catch(err => {
+                console.error(err);
+                alert("No se pudo obtener información de la provincia.");
+              });
+          });
+        }
+      }).addTo(map);
+    })
+    .catch(err => {
+      console.error("Error al cargar GeoJSON:", err);
+      alert("Error al cargar el mapa.");
+    });
+</script>
+
+</body>
+</html>
