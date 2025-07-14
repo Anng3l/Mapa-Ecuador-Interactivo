@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Mapa Interactivo con GeoJSON externo</title>
+  <title>Mapa Interactivo del Ecuador</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="config.js"></script>
   <link
@@ -18,7 +18,7 @@
 </head>
 <body>
 
-<h2>Provincias de Ecuador (GeoJSON externo)</h2>
+<h2>Mapa del Ecuador</h2>
 <div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -29,7 +29,7 @@
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
   
-  fetch('provincias_ecuador.geojson')  // <-- Ruta a tu archivo GeoJSON
+  fetch('provincias_ecuador.geojson')
     .then(response => {
       if (!response.ok) {
         throw new Error("No se pudo cargar el archivo GeoJSON");
@@ -50,7 +50,8 @@
           layer.on('click', () => {
             const nombreProvincia = feature.properties.nombre;
 
-            fetch(`https://mapaflask1-production.up.railway.app/api/provincia/${encodeURIComponent(nombreProvincia)}`)
+            //Requests en local
+            fetch(`http://localhost:8080/api/provincia/${encodeURIComponent(nombreProvincia)}`)
               .then(res => {
                 if (!res.ok) throw new Error("Error en la respuesta del servidor");
                 return res.json();
@@ -61,7 +62,9 @@
                   `Población total: ${data.pob_tot}\n` +
                   `Analfabetismo: ${data.analfabeti}%\n` +
                   `Densidad: ${data.densidad}\n` +
-                  `Edad media: ${data.edad_media}`
+                  `Edad media: ${data.edad_media}\n` +
+                  `Capital: ${data.capital}\n` +
+                  `Superficie (km2): ${data.superficie_km2}`
                 );
               })
               .catch(err => {
